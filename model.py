@@ -14,6 +14,7 @@ import os
 max_features = 20000
 maxlen = 100
 MAX_WORDS = 20000
+GLOVE_DIR = os.path.join(os.path.dirname(__file__), './glove')
 
 # Labels-index dictionary
 labels_index = {}
@@ -92,6 +93,29 @@ class BidirLSTMCRF:
 		self.model, loss = self.build_model()
 		self.model.compile(self.optimizer, loss, metrics=['accuracy'])
 
+	def create_embeddings_layer(self):
+		# Load pre-trained GloVe embedding
+		embeddings_index = {}
+		with open(os.path.join(GLOVE_DIR, 'glove.6B.100d.txt')) as glove_file:
+			for line in glove_file:
+			    values = line.split()
+			    word = values[0]
+			    coeficients = np.asarray(values[1:], dtype='float32')
+			    embeddings_index[word] = coeficients
+
+		embedding_matrix = np.zeros((len(word_index) + 1, EMBEDDING_DIM))
+		for word, i in word_index.items():
+		    embedding_vector = embeddings_index.get(word)
+		    if embedding_vector is not None:
+		        # words not found in embedding index will be all-zeros.
+		        embedding_matrix[i] = embedding_vector
+
+		return Embedding(len(word_index) + 1,
+                         EMBEDDING_DIM,
+                         weights=[embedding_matrix],
+                         input_length=MAX_SEQUENCE_LENGTH,
+                         trainable=False)
+
 	def build_model(self):
 		"""
 		Builds Bidirectional LSTM-CRF model.
@@ -103,7 +127,8 @@ class BidirLSTMCRF:
 		# Model
 		model = Sequential()
 		# TODO - Embeddings
-		model.add(Embedding(max_features, self.word_lstm_size * 2, input_length=maxlen))
+		model.add(self.create_embeddings_layer())
+		#model.add(Embedding(max_features, self.word_lstm_size * 2, input_length=maxlen))
 
 		# Bidirectional LSTM
 		#bi_lstm = Bidirectional(LSTM(units=self.word_lstm_size, return_sequences=True))
