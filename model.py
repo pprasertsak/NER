@@ -1,6 +1,6 @@
 from keras.preprocessing import sequence
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional
+from keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional, Input
 from keras.preprocessing.text import Tokenizer
 from keras.utils import to_categorical
 
@@ -15,6 +15,7 @@ max_features = 20000
 maxlen = 100
 MAX_WORDS = 20000
 GLOVE_DIR = os.path.join(os.path.dirname(__file__), './glove')
+EMBEDDING_DIM = 100
 
 # Labels-index dictionary
 labels_index = {}
@@ -113,7 +114,7 @@ class BidirLSTMCRF:
 		return Embedding(len(word_index) + 1,
                          EMBEDDING_DIM,
                          weights=[embedding_matrix],
-                         input_length=MAX_SEQUENCE_LENGTH,
+                         input_length=maxlen,
                          trainable=False)
 
 	def build_model(self):
@@ -122,12 +123,16 @@ class BidirLSTMCRF:
 		"""
 
 		# Word embedding - TODO
-		word_embeddings = Dropout(self.dropout)
+		#word_embeddings = Dropout(self.dropout)
 
 		# Model
 		model = Sequential()
-		# TODO - Embeddings
-		model.add(self.create_embeddings_layer())
+
+		# Input
+		#input = Input(shape=(maxlen,), dtype='int32')
+		# Embeddings
+		embeddings = self.create_embeddings_layer()#(input)
+		model.add(embeddings)
 		#model.add(Embedding(max_features, self.word_lstm_size * 2, input_length=maxlen))
 
 		# Bidirectional LSTM
@@ -176,7 +181,7 @@ validation_words, validation_tags = load_data('../../ML-Internet-DataSets/conll2
 test_words, test_tags = load_data('../../ML-Internet-DataSets/conll2003/en/test.txt')#load_data_and_labels(test_path)
 
 # Tokenizer
-tokenizer = Tokenizer(nb_words=MAX_WORDS)
+tokenizer = Tokenizer(num_words=MAX_WORDS)
 tokenizer.fit_on_texts(train_words)
 # Format traininig data
 train_data = tokenizer.texts_to_sequences(train_words)
@@ -184,17 +189,32 @@ train_data = tokenizer.texts_to_sequences(train_words)
 word_index = tokenizer.word_index
 print('Found %s unique tokens.' % len(word_index))
 
+# Training data
 x_train = sequence.pad_sequences(train_data, maxlen=maxlen)
 
-y_train = []
-for sentece_tags in train_tags:
-	y_train.append(to_categorical(np.asarray(sentece_tags)))
+# # Training labels
+# labels_original_shape = train_tags.shape
+# labels_cnt = train_tags.max() + 1
+
+# y_train = train_tags.reshape((-1,))
+# y_train = to_categorical(y_train)
+# y_train = y_train.reshape(labels_original_shape + (labels_cnt,))
+
+y_train = np.array([to_categorical(np.asarray(sentece_tags)) for sentece_tags in train_tags])
+# X = np.array([to_categorical(np.array(input), CATEGORY_LENGTH) for input in inputs])
+# for sentece_tags in train_tags:
+# 	#print(to_categorical(np.asarray(sentece_tags)))
+# 	np.append(y_train, t)
 
 #train_words = sequence.pad_sequences(train_words, maxlen=maxlen)
 #validation_words = sequence.pad_sequences(validation_words, maxlen=maxlen)
 
+
+print('Input shape: ' + str(x_train.shape))
+print('Target shape: ' + str(y_train.shape))
+
 lstm_model = BidirLSTMCRF(5)
-lstm_model.train(x_train, y_train)
+lstm_model.train(np.array(x_train), train_tags)
 
 
 
