@@ -35,7 +35,7 @@ def load_data(file_path):
 
 	# Tmp data
 	tmp_words = ""
-	#tmp_tags = []
+	tmp_tags = []
 	for line in open(file_path, encoding='utf-8'):
 		line = line.strip()
 
@@ -44,16 +44,16 @@ def load_data(file_path):
 			# Append non-empty words and tags
 			if tmp_words:
 				words.append(tmp_words[1:])
-				#tags.append(tmp_tags)
+				tags.append(tmp_tags)
 			# Clear tmp arrays
 			tmp_words = ""
-			#tmp_tags = []
+			tmp_tags = []
 		else: # Currently reading sentence
 			word, _, _, tag = line.split()
 			
 			tmp_words += " " + word
-			#tmp_tags.append(labels_index[tag])
-			tags.append(labels_index[tag])
+			tmp_tags.append(labels_index[tag])
+			#tags.append(labels_index[tag])
 
 	return words, tags
 
@@ -178,19 +178,23 @@ test_words, test_tags = load_data('../../ML-Internet-DataSets/conll2003/en/test.
 # Tokenizer
 tokenizer = Tokenizer(nb_words=MAX_WORDS)
 tokenizer.fit_on_texts(train_words)
+# Format traininig data
 train_data = tokenizer.texts_to_sequences(train_words)
 
 word_index = tokenizer.word_index
 print('Found %s unique tokens.' % len(word_index))
 
-train_data = sequence.pad_sequences(train_data, maxlen=maxlen)
-train_tags = to_categorical(np.asarray(train_tags))
+x_train = sequence.pad_sequences(train_data, maxlen=maxlen)
+
+y_train = []
+for sentece_tags in train_tags:
+	y_train.append(to_categorical(np.asarray(sentece_tags)))
 
 #train_words = sequence.pad_sequences(train_words, maxlen=maxlen)
 #validation_words = sequence.pad_sequences(validation_words, maxlen=maxlen)
 
 lstm_model = BidirLSTMCRF(5)
-lstm_model.train(train_data, train_tags)
+lstm_model.train(x_train, y_train)
 
 
 
