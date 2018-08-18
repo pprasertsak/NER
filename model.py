@@ -191,7 +191,6 @@ print('Found %s unique tokens.' % len(word_index))
 
 # Training data
 x_train = sequence.pad_sequences(train_data, maxlen=maxlen)
-
 # # Training labels
 # labels_original_shape = train_tags.shape
 # labels_cnt = train_tags.max() + 1
@@ -214,7 +213,7 @@ print('Input shape: ' + str(x_train.shape))
 print('Target shape: ' + str(y_train.shape))
 
 lstm_model = BidirLSTMCRF(5)
-lstm_model.train(np.array(x_train), train_tags)
+lstm_model.train(np.array(x_train), np.array(y_train))
 
 
 
