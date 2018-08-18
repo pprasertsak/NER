@@ -190,7 +190,10 @@ word_index = tokenizer.word_index
 print('Found %s unique tokens.' % len(word_index))
 
 # Training data
+#x_train = np.array(train_data)
 x_train = sequence.pad_sequences(train_data, maxlen=maxlen)
+print(x_train[0])
+
 # # Training labels
 # labels_original_shape = train_tags.shape
 # labels_cnt = train_tags.max() + 1
@@ -199,7 +202,23 @@ x_train = sequence.pad_sequences(train_data, maxlen=maxlen)
 # y_train = to_categorical(y_train)
 # y_train = y_train.reshape(labels_original_shape + (labels_cnt,))
 
-y_train = np.array([to_categorical(np.asarray(sentece_tags)) for sentece_tags in train_tags])
+one_hot_encodings = to_categorical([0,1,2,3,4,5,6,7,8])
+
+y_train = []
+for sentece_tags in train_tags:
+	tmp = []
+	
+	for tag in sentece_tags:
+		tmp.append(one_hot_encodings[tag])
+	
+	y_train.append(tmp)
+
+y_train = np.array(y_train)
+#y_train = np.array([one_hot_encodings[tag] for sentence_tags in train_tags for tag in sentence_tags])
+
+# for index in range(len(y_train)):
+# 	y_train[index] = sequence.pad_sequences(y_train[index], maxlen=maxlen)
+print(y_train[0])
 # X = np.array([to_categorical(np.array(input), CATEGORY_LENGTH) for input in inputs])
 # for sentece_tags in train_tags:
 # 	#print(to_categorical(np.asarray(sentece_tags)))
@@ -213,7 +232,9 @@ print('Input shape: ' + str(x_train.shape))
 print('Target shape: ' + str(y_train.shape))
 
 lstm_model = BidirLSTMCRF(5)
-lstm_model.train(np.array(x_train), np.array(y_train))
+
+print('Training...')
+lstm_model.train(np.array(x_train), np.zeros((14986, 100, 9)))#np.array(y_train))
 
 
 
