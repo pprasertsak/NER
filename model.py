@@ -176,9 +176,9 @@ class BidirLSTMCRF:
 
 # Load CoNNL 2003 dataset
 print('Loading data...')
-train_words, train_tags = load_data('../../ML-Internet-DataSets/conll2003/en/train.txt')#load_data_and_labels(train_path)
-validation_words, validation_tags = load_data('../../ML-Internet-DataSets/conll2003/en/valid.txt')#load_data_and_labels(valid_path)
-test_words, test_tags = load_data('../../ML-Internet-DataSets/conll2003/en/test.txt')#load_data_and_labels(test_path)
+train_words, train_tags = load_data('./conll2003/en/train.txt')#load_data_and_labels(train_path)
+validation_words, validation_tags = load_data('./conll2003/en/valid.txt')#load_data_and_labels(valid_path)
+test_words, test_tags = load_data('./conll2003/en/test.txt')#load_data_and_labels(test_path)
 
 # Tokenizer
 tokenizer = Tokenizer(num_words=MAX_WORDS)
